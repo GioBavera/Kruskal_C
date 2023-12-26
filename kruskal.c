@@ -6,17 +6,17 @@ int main(){
     rama *arbol = NULL;
 
     printf("\nIngrese el costo de las aristas: \n");
-    for(int i=0; i<=VERTICES-1; i++){
-        for(int j=i+1; j<=VERTICES-1; j++){
+    for(int i = 0; i < VERTICES; i++){
+        for(int j = i + 1; j <= VERTICES - 1; j++){
             int error = 1;
             while(error){       // Caso en el que se ingrese un valor menor a 0, se repite
-                printf("Costo %d y %d = ", i, j);
+                printf("Arista %d y %d = ", i, j);
                 scanf("%d", &aux);
                 if(aux > 0){
                     error = 0;
                     M_Costos[i][j] = aux;
                 } else {
-                    printf("Error. Valor Incorrecto. Vuelva a intentarlo. \n");
+                    printf("Error. Vuelva a intentarlo. \n");
                 }   // Si el valor es > 0, entonces lo guarda en M_Costos
             }
         }
@@ -37,10 +37,8 @@ int main(){
 // Agrega un vertice al conjunto 
 void inicial(tipo_nombre x, tipo_elemento s, conjunto_CE *S){
     (S->nombres)[s].nombre_conjunto = x;            // Agrega el nomre
-    // Inicializa el siguiente elemento de s como -1, indicando el final de la lista
-    (S->nombres)[s].siguiente_elemento = -1;    
+    (S->nombres)[s].siguiente_elemento = -1;        // Fin de la lista
     (S->encabezamientos_conjunto)[x].cuenta = 1;    // Inicia la cuenta
-    // Asigna el primer elemento del conjunto x como s
     (S->encabezamientos_conjunto)[x].primer_elemento = s;   
 }
 
@@ -59,7 +57,7 @@ void combina(tipo_nombre a, tipo_nombre b, conjunto_CE *S){
         // Actualiza el último elemento del conjunto b para apuntar al primer elemento del conjunto a
         S->nombres[elem].nombre_conjunto = a;
         S->nombres[elem].siguiente_elemento = S->encabezamientos_conjunto[a].primer_elemento;
-        S->encabezamientos_conjunto[a].primer_elemento = S->encabezamientos_conjunto[b].primer_elemento;
+        //S->encabezamientos_conjunto[a].primer_elemento = S->encabezamientos_conjunto[b].primer_elemento;
        
         S->encabezamientos_conjunto[a].cuenta += S->encabezamientos_conjunto[b].cuenta;     // Actualizo la cantidad de a + b
     } else {    // Lo mismo que antes pero en caso de b con mas elementos que a
@@ -70,7 +68,8 @@ void combina(tipo_nombre a, tipo_nombre b, conjunto_CE *S){
         }
         S->nombres[elem].nombre_conjunto = b;
         S->nombres[elem].siguiente_elemento = S->encabezamientos_conjunto[b].primer_elemento;
-        S->encabezamientos_conjunto[b].primer_elemento = S->encabezamientos_conjunto[a].primer_elemento;
+        //S->encabezamientos_conjunto[b].primer_elemento = S->encabezamientos_conjunto[a].primer_elemento;
+        
         S->encabezamientos_conjunto[b].cuenta += S->encabezamientos_conjunto[a].cuenta;
     }
 }
@@ -87,7 +86,6 @@ void kruskal(rama **arbol){
     arista minimaArista;
     int uComponente, vComponente, nVertices = VERTICES; 
 
-    // Agrega los vertices al conjunto 
     for(int i = 0; i < VERTICES; i++){
         inicial(i, i, S);
     }
@@ -156,10 +154,10 @@ arista sacar_min(rama **arbol){
     }
     // Reinicia aux al inicio del árbol
     aux = *arbol;
-    // Si el costo de la arista del primer nodo es igual a minimoCosto
-    if(aux->a.costo == minimoCosto.costo){  // En el caso de que sea el primer nodo, lo elimina
+    // Caso de que la raiz sea la arista de menor costo
+    if(aux->a.costo == minimoCosto.costo){  
         *arbol = (*arbol)->sig;
-        free(aux);
+        //free(aux);
     } else {
         // Si no, encuentra el nodo que contiene la arista de minimoCosto
         while(aux->sig->a.costo != minimoCosto.costo){
