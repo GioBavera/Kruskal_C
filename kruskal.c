@@ -6,10 +6,11 @@ int main(){
     rama *arbol = NULL;
 
     printf("\nIngrese el costo de las aristas: \n");
+
     for(int i = 0; i < VERTICES; i++){
         for(int j = i + 1; j <= VERTICES - 1; j++){
             int error = 1;
-            while(error){       // Caso en el que se ingrese un valor menor a 0, se repite
+            while(error){       // Chequea que el costo sea valido
                 printf("Arista %d y %d = ", i, j);
                 scanf("%d", &aux);
                 if(aux > 0){
@@ -21,15 +22,16 @@ int main(){
             }
         }
     }
+    
     for(int i=0; i<= VERTICES-1; i++){
         for(int j = i + 1; j <= VERTICES - 1; j++){
             if(M_Costos[i][j] != 0){
-                inserta(i, j, M_Costos[i][j], &arbol);    // Llama a inserta para crear la lista enlazada
-            }                                             // de las aristas 
+                inserta(i, j, M_Costos[i][j], &arbol);    // Crea la lista enlazada de los vertices y costos
+            }                                              
         }
     }
     kruskal(&arbol);        // Llamo a kruskal para conseguir el arbol final
-    lista(arbol);           // Llamo el arbol final para mostrar el arbol final
+    lista(arbol);           // Imprime el arbol final tras el algoritmo
     return 0;
 }
 
@@ -42,13 +44,13 @@ void inicial(tipo_nombre x, tipo_elemento s, conjunto_CE *S){
     (S->encabezamientos_conjunto)[x].primer_elemento = s;   
 }
 
-// La función 'combina' combina dos conjuntos a y b en un solo conjunto
+// La función une a los dos conjuntos A y B en un solo conjunto C.
 void combina(tipo_nombre a, tipo_nombre b, conjunto_CE *S){
-    int cant1 = S->encabezamientos_conjunto[a].cuenta;  // cantidad de elementos en los conjuntos
-    int cant2 = S->encabezamientos_conjunto[b].cuenta;
+    int cant1 = S->encabezamientos_conjunto[a].cuenta;  // cant1 = cantidad de elementos conjunto A
+    int cant2 = S->encabezamientos_conjunto[b].cuenta;  // cant2 = cantidad de elementos conjunto B
 
+    // Al conjunto mas grande se le une el mas chico
     if(cant1 > cant2){
-        // Recorre todos los elementos del conjunto b
         int elem = S->encabezamientos_conjunto[b].primer_elemento;
         while(S->nombres[elem].siguiente_elemento != -1){   // Recorre todos los elementos del conjunto b
             S->nombres[elem].nombre_conjunto = a;           // Para cambiarlos de b a a
@@ -56,11 +58,11 @@ void combina(tipo_nombre a, tipo_nombre b, conjunto_CE *S){
         }
         // Actualiza el último elemento del conjunto b para apuntar al primer elemento del conjunto a
         S->nombres[elem].nombre_conjunto = a;
-        S->nombres[elem].siguiente_elemento = S->encabezamientos_conjunto[a].primer_elemento;
-        //S->encabezamientos_conjunto[a].primer_elemento = S->encabezamientos_conjunto[b].primer_elemento;
-       
-        S->encabezamientos_conjunto[a].cuenta += S->encabezamientos_conjunto[b].cuenta;     // Actualizo la cantidad de a + b
-    } else {    // Lo mismo que antes pero en caso de b con mas elementos que a
+        S->nombres[elem].siguiente_elemento = S->encabezamientos_conjunto[a].primer_elemento;   // Primer elemento de A, ultimo en C
+        S->encabezamientos_conjunto[a].primer_elemento = S->encabezamientos_conjunto[b].primer_elemento;
+        S->encabezamientos_conjunto[a].cuenta += S->encabezamientos_conjunto[b].cuenta;     // Actualizo la cantidad de elementos del conjunto
+    
+    } else {    // Mismo codigo pero caso contrario
         int elem = S->encabezamientos_conjunto[a].primer_elemento;
         while(S->nombres[elem].siguiente_elemento != -1){
             S->nombres[elem].nombre_conjunto = b;
@@ -68,29 +70,30 @@ void combina(tipo_nombre a, tipo_nombre b, conjunto_CE *S){
         }
         S->nombres[elem].nombre_conjunto = b;
         S->nombres[elem].siguiente_elemento = S->encabezamientos_conjunto[b].primer_elemento;
-        //S->encabezamientos_conjunto[b].primer_elemento = S->encabezamientos_conjunto[a].primer_elemento;
-        
+        S->encabezamientos_conjunto[b].primer_elemento = S->encabezamientos_conjunto[a].primer_elemento;
         S->encabezamientos_conjunto[b].cuenta += S->encabezamientos_conjunto[a].cuenta;
     }
 }
 
-// Devuelve el nombre de la componente a la que pertenece el vertice
-tipo_nombre encuentra (int x, conjunto_CE *S){
-    return ((S->nombres)[x].nombre_conjunto);
+// Simplemente retorna el nombre del conjunto que pertenece el vertice
+tipo_nombre encuentra (int v, conjunto_CE *S){
+    return ((S->nombres)[v].nombre_conjunto);
 }
 
-// Funcion para el algoritmo de kruskal
+// Algoritmo de Kruskal
 void kruskal(rama **arbol){     
     conjunto_CE *S = (conjunto_CE*)malloc(sizeof(conjunto_CE));
     rama *final = NULL;
     arista minimaArista;
     int uComponente, vComponente, nVertices = VERTICES; 
 
-    for(int i = 0; i < VERTICES; i++){
+    // Se crean las componentes
+    for(int i = 0; i < nVertices; i++){
         inicial(i, i, S);
     }
 
     printf("\n-----------------------------------------------\n");
+
     while(nVertices > 1){
         minimaArista = sacar_min(arbol);
         int u = minimaArista.u;
@@ -99,6 +102,7 @@ void kruskal(rama **arbol){
         uComponente = encuentra(u, S);
         vComponente = encuentra(v, S);
 
+        // Si los conjuntos son distintos, se combina las componentes.
         if(uComponente != vComponente){
             printf("Arista seleccionada: (%d,%d) con costo %d\n", minimaArista.u, minimaArista.v, minimaArista.costo);
             combina(uComponente, vComponente, S);
@@ -109,7 +113,8 @@ void kruskal(rama **arbol){
     }
 
     printf("-----------------------------------------------\n");
-    rama * aux = *arbol;
+    // Libera la memoria del grafo original
+    rama *aux = *arbol;
     while(aux != NULL){
         *arbol = aux;
         aux = (*arbol)->sig;
@@ -118,12 +123,12 @@ void kruskal(rama **arbol){
     *arbol = final; 
 }
 
-// Inserta en la lista enlazada (arbol) la nueva componente (u, v y costo)
+// Inserta en la lista enlazada (arbol) la nueva arista (u, v y costo)
 void inserta(int u, int v, int costo, rama **arbol){
     rama *nuevo;        // Creo una rama con los datos nuevos 
     nuevo = (rama *)malloc(sizeof(rama)); 
-    nuevo->a.u = u;     // Asigno su primer vertice
-    nuevo->a.v = v;     // Asigno su segundo vertice
+    nuevo->a.u = u;         // Asigno su primer vertice
+    nuevo->a.v = v;         // Asigno su segundo vertice
     nuevo->a.costo = costo; // Asigno su costo 
     nuevo->sig = NULL;  // Momentanemanete no apunta a nada 
 
@@ -141,24 +146,22 @@ void inserta(int u, int v, int costo, rama **arbol){
 
 // Esta función devuelve la arista de menor costo dentro de la lista enlazada, en este caso, árbol
 arista sacar_min(rama **arbol){
+    rama *aux = *arbol;     // Copia para evitar manipular el arbol inicial
+    arista minimoCosto = (*arbol)->a;   // Arista donde se termina guardando la menor
 
-    rama *aux = *arbol;
-    arista minimoCosto = (*arbol)->a;   // Esta arista va a guardar finalmente la arista de menor costo
-
-    while(aux != NULL){     // Recorre el arbol hasta encontrar la minima, siempre que no sea nulo
-        
+    while(aux != NULL){     // Recorre el arbol hasta encontrar la minima siendo no nulo
         if(aux->a.costo < minimoCosto.costo){   // Si es la arista menor, actualiza
-            minimoCosto = aux->a;
+            minimoCosto = aux->a;               // Guardo la arista de menor costo
         }
         aux = aux->sig;         // Caso contrario sigue buscando
     }
-    // Reinicia aux al inicio del árbol
-    aux = *arbol;
+    aux = *arbol;   // Reinicia aux al inicio del árbol
+
     // Caso de que la raiz sea la arista de menor costo
     if(aux->a.costo == minimoCosto.costo){  
         *arbol = (*arbol)->sig;
-        //free(aux);
-    } else {
+        free(aux);
+    }else{
         // Si no, encuentra el nodo que contiene la arista de minimoCosto
         while(aux->sig->a.costo != minimoCosto.costo){
             aux = aux->sig;
@@ -171,10 +174,10 @@ arista sacar_min(rama **arbol){
     return minimoCosto;     // Devuelvo la arista de menor costo
 }
 
-// Muestra por consola el arbol final al aplicarle el algoritmo de kruskal
+// Imprime el arbol final
 void lista(rama* arbol){
-    rama *copia = arbol;    // Creo una copia del arbol original para poder imprimirlo 
-    printf("\nEl camino final queda: \n");
+    rama *copia = arbol;    // Creo una copia del arbol original para no modificar el original 
+    printf("\nEl camino de menor costo queda: \n");
     for(int i=0; copia != NULL; i++){           // Imprime las aristas seleccionadas del arbol final. 
         printf("| (%d)", copia->a.u);           // El formato de visualizacion de los vertices es:
         printf("---[%d]---", copia->a.costo);   // (vertice)---[costo]---(vertice) | ... 

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define VERTICES 5          //maximo 5 
+#define VERTICES 5           
 
 //------------------------ Definiciones
 typedef int tipo_nombre;
@@ -31,11 +31,11 @@ typedef struct _NOMBRE{
 }nombre;
 
 typedef struct _CONJUNTO_CE{
-    nombre nombres[VERTICES];  // 5 estructuras nombre
+    nombre nombres[VERTICES];  
     encabezado encabezamientos_conjunto[VERTICES];
 }conjunto_CE;
 
-//------------------------ Declaraciones
+//------------------------ Declaraciones de funciones
 void inicial(tipo_nombre, tipo_elemento, conjunto_CE*);  
 void combina(tipo_nombre, tipo_nombre, conjunto_CE*);
 tipo_nombre encuentra (int, conjunto_CE*);               
